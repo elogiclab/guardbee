@@ -1,0 +1,16 @@
+@(title: String)(content: Html)
+@import com.elogiclab.guardbee.core.RoutesHelper._
+<!DOCTYPE html>
+<html>
+<head>
+    <title>@title</title>
+	<link href="@webJarAt(WebJarAssets.locate("css/bootstrap.min.css"))" rel="stylesheet">
+	<link href="@webJarAt(WebJarAssets.locate("font-awesome.min.css"))" rel="stylesheet">
+	<script src="@webJarAt(WebJarAssets.locate("jquery.min.js"))"></script>
+	<script src="@webJarAt(WebJarAssets.locate("js/bootstrap.min.js"))"></script>
+</head>
+<body>
+@content
+
+</body>
+</html>

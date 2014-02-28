@@ -1,0 +1,18 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+GET     /                           controllers.Application.index()
+GET		/secured					controllers.Application.secured()
+
+
+# Map static resources from the /public folder to the /assets URL path
+GET     /assets/*file               controllers.Assets.at(path="/public", file)
+GET     /webjars/*file              controllers.WebJarAssets.at(file)
+
+GET 	/login						com.elogiclab.guardbee.core.LoginLogoutController.loginPage(dest: Option[String])
+POST 	/login/*providerId						com.elogiclab.guardbee.core.LoginLogoutController.login(providerId, dest: Option[String])
+
+POST 	/loginwith/*providerId						com.elogiclab.guardbee.core.LoginLogoutController.loginWith(providerId, dest)
+
+GET 	/oauthcallback/*provider						com.elogiclab.guardbee.core.LoginLogoutController.oauthCallback(provider, state: Option[String])

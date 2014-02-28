@@ -1,0 +1,12 @@
+@(implicit request: Request[AnyContent])
+@import com.elogiclab.guardbee.core.GuardbeeService
+@main("Welcome to Play Framework") {
+
+    <div class="well">
+    	
+    @GuardbeeService.getAuthentication(request).map { auth =>
+        <h1>@auth.username</h1>
+    }
+    </div>
+
+}

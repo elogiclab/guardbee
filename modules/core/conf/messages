@@ -1,0 +1,6 @@
+guardbee.googleauth.error.unauthorized=Unable to log in with this provider ({0})
+guardbee.error.internal=Internal error (code: {0})
+
+guardbee.error.authenticationFailed=Invalid username or password
+
+

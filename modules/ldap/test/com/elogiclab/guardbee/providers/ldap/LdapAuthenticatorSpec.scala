@@ -1,0 +1,120 @@
+/**
+ * Copyright (c) 2014 Marco Sarti <marco.sarti at gmail.com>
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
+package com.elogiclab.guardbee.providers.ldap
+
+/**
+ * @author Marco Sarti
+ *
+ */
+import org.specs2.mutable.Specification
+import play.api.test.WithApplication
+import com.unboundid.ldap.sdk.LDAPConnection
+import play.api.Logger
+import play.api.test.FakeApplication
+import play.api.test.FakeRequest
+
+/**
+ * @author Marco Sarti
+ *
+ */
+object LdapAuthenticatorSpec extends Specification {
+  val logger = Logger("guardbee")
+
+  "LdapAuthenticator" should {
+
+    "findDN must find DN" in new WithApplication(app = new FakeApplication(
+      additionalPlugins = Seq("com.elogiclab.guardbee.core.GuardbeeServicePlugin"),
+      additionalConfiguration = Map("logger.guardbee-ldap" -> "DEBUG"))) {
+      val clazz = new LdapAuthenticatorPlugin(app)
+      clazz.connect.fold({ error =>
+        logger.error(error.print)
+        false must beTrue
+      }, { connection =>
+        val result1 = clazz.findDN(connection, "msarti")
+        result1 must beRight
+        result1.right.get.userDN must equalTo("uid=msarti,ou=People,dc=elogiclab,dc=com")
+
+        val result2 = clazz.findDN(connection, "nouser")
+        result2 must beLeft
+      })
+
+    }
+    "bindUser must authenticate" in new WithApplication(app = new FakeApplication(additionalPlugins = Seq("com.elogiclab.guardbee.core.GuardbeeServicePlugin"))) {
+      val clazz = new LdapAuthenticatorPlugin(app)
+      clazz.connect.fold({ error =>
+        logger.error(error.print)
+        false must beTrue
+      }, { connection =>
+        val result1 = clazz.bindUser(connection, "uid=msarti,ou=People,dc=elogiclab,dc=com", "123456")
+        result1 must beRight
+        val result2 = clazz.bindUser(connection, "uid=msarti,ou=People,dc=elogiclab,dc=com", "baspwd")
+        result2 must beLeft
+        val result3 = clazz.bindUser(connection, "uid=nouser,ou=People,dc=elogiclab,dc=com", "baspwd")
+        result3 must beLeft
+      })
+
+    }
+
+  }
+
+  "Should obtain credentials fron request" in new WithApplication {
+    val request = FakeRequest("POST", "/").withFormUrlEncodedBody(("username", "username"), ("password", "password"))
+    val plugin = new LdapAuthenticatorPlugin(app)
+    val token = plugin.obtainCredentials(request)
+    token.isRight must beTrue
+    token.right.get.username must equalTo("username")
+    token.right.get.password must equalTo("password")
+  }
+
+  "Should authenticate" in new WithApplication {
+    val plugin = new LdapAuthenticatorPlugin(app)
+    val result = plugin.authenticate(LdapAuthenticationToken("msarti", "123456", None))
+    
+    result must beRight
+    
+  }
+  "Should NOT authenticate with bad credentials" in new WithApplication {
+    val plugin = new LdapAuthenticatorPlugin(app)
+    val result = plugin.authenticate(LdapAuthenticationToken("msarti", "bad", None))
+    
+    result must beLeft
+    
+  }
+  "Should NOT authenticate with blank password" in new WithApplication {
+    val plugin = new LdapAuthenticatorPlugin(app)
+    val result = plugin.authenticate(LdapAuthenticationToken("msarti", "", None))
+    
+    result must beLeft
+    
+  }
+  "Should NOT authenticate if user does not exist" in new WithApplication {
+    val plugin = new LdapAuthenticatorPlugin(app)
+    val result = plugin.authenticate(LdapAuthenticationToken("notexists", "dummy", None))
+    
+    result must beLeft
+    
+  }
+}
