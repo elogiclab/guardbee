@@ -23,38 +23,16 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  *
  */
+package com.elogiclab.guardbee.core
+
 /**
  * @author Marco Sarti
  *
  */
-import play.api._
-import com.elogiclab.guardbee.core.GuardbeeService
-import com.elogiclab.guardbee.core.User
-import org.joda.time.DateTime
-import com.elogiclab.guardbee.core.GuardbeeService
+trait AuthenticationToken {
 
-object Global extends GlobalSettings {
-
-  override def onStart(app: Application) {
-    Logger.info("Application has started")
-    
-    GuardbeeService.UserService[User].getByUsername("msarti").orElse {
-    
-	    GuardbeeService.UserService[User].createUser(new User {
-	      val username = "msarti"
-	      val fullName = "Marco Sarti"
-	      val email = "marco.sarti@gmail.com"
-	      val enabled = true
-	      val expirationDate = Some(DateTime.now.plusMonths(2))
-	    }, GuardbeeService.Configuration.DefaultProfileRoles)
-	    GuardbeeService.UserService[User].updatePassword("msarti", GuardbeeService.PasswordProvider.hash("password"))
-	    None
-    }
-    
-  }  
-  
-  override def onStop(app: Application) {
-    Logger.info("Application shutdown...")
-  }  
-    
 }
+
+case class UsernamePasswordAuthenticationToken(username: String, password: String, remember_me: Option[Boolean]) extends AuthenticationToken
+
+case class OAuth2AuthenticationToken(code: Option[String], error: Option[String], state: Option[String]) extends AuthenticationToken

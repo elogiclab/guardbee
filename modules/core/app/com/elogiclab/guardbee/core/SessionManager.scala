@@ -34,6 +34,7 @@ import play.api.libs.functional.syntax._
 import org.joda.time.DateTime
 import play.api.libs.Crypto
 import play.api.mvc.Cookie
+import play.api.Logger
 
 /**
  * @author Marco Sarti
@@ -51,19 +52,23 @@ trait SessionManager {
 }
 
 class DefaultSessionManagerPlugin(app: Application) extends Plugin with SessionManager {
+  
+  val logger = Logger("guardbee")
+  
+  val df = org.joda.time.format.ISODateTimeFormat.dateTime
 
   implicit val authenticationReads = (
     (__ \ "username").read[String] and
     (__ \ "provider").read[String] and
     (__ \ "scope").read[Option[Seq[String]]] and
-    (__ \ "lastAccess").read[DateTime] and
+    (__ \ "lastAccess").read[String].fmap[DateTime](dt => df.parseDateTime(dt))  and
     (__ \ "remember_me").read[Boolean])(Authentication.apply _)
 
   implicit val authenticationWriters = (
     (__ \ "username").write[String] and
     (__ \ "provider").write[String] and
     (__ \ "scope").write[Option[Seq[String]]] and
-    (__ \ "lastAccess").write[DateTime] and
+    (__ \ "lastAccess").write[String].contramap[DateTime](dt => df.print(dt)) and
     (__ \ "remember_me").write[Boolean])(unlift(Authentication.unapply))
 
   private def serializeAndSign(auth: Authentication): String = {
@@ -72,19 +77,25 @@ class DefaultSessionManagerPlugin(app: Application) extends Plugin with SessionM
   }
 
   private def verifyAndDeserialize(value: String): Option[Authentication] = {
-
     val json = if (value.length > 40) value.substring(41) else ""
     val sign = if (value.length > 40) value.substring(0, 40) else ""
     val expected = Crypto.sign(json)
     expected == sign match {
       case true => {
+        logger.debug("Cookie signature verified")
         val jsvalue = Json.parse(json)
         jsvalue.validate[Authentication] match {
           case auth: JsSuccess[Authentication] => Some(auth.get)
-          case _ => None
+          case _ => {
+        	logger.warn("Cookie object not validated!")
+            None
+          }
         }
       }
-      case _ => None
+      case _ => {
+       	logger.warn("Cookie signature NOT verified")
+        None
+      }
     }
   }
 
@@ -107,7 +118,12 @@ class DefaultSessionManagerPlugin(app: Application) extends Plugin with SessionM
     cookie
   }
 
-  def getAuthentication(request: RequestHeader): Option[Authentication] = None
+  def getAuthentication(request: RequestHeader): Option[Authentication] = {
+    import GuardbeeService.Configuration
+    request.cookies.get(Configuration.CookieName).map{ cookie =>
+      verifyAndDeserialize(cookie.value)
+    }.getOrElse(None)
+  }
 
   def removeAuthentication(result: => Result): Result = result
 

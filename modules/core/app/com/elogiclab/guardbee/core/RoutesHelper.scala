@@ -37,14 +37,14 @@ object RoutesHelper {
   lazy val loginLogoutControllerClazz = Play.current.classloader.loadClass("com.elogiclab.guardbee.core.ReverseLoginLogoutController")
 
   lazy val loginLogoutControllerMethods = loginLogoutControllerClazz.newInstance().asInstanceOf[{
-    def loginPage(dest:String): Call
+    def loginPage(dest:Option[String]): Call
     def logout(): Call
     def login(providerId: String, dest:Option[String]): Call
     def loginWith(providerId: String, dest: String): Call
     def loginCallback(provider:String, code:String)
   }]
 
-  def loginPage(dest:String) = loginLogoutControllerMethods.loginPage(dest)
+  def loginPage(dest:Option[String]) = loginLogoutControllerMethods.loginPage(dest)
   def logout() = loginLogoutControllerMethods.logout()
   def login(providerId: String, dest:Option[String]) = loginLogoutControllerMethods.login(providerId, dest)
   def loginWith(providerId: String, dest: String) = loginLogoutControllerMethods.loginWith(providerId, dest)

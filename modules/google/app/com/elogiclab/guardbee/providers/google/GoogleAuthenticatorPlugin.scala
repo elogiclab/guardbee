@@ -48,60 +48,43 @@ import org.joda.time.DateTime
 import com.elogiclab.guardbee.core.User
 import com.elogiclab.guardbee.core.Authentication
 import com.elogiclab.guardbee.core.GuardbeeService
+import com.elogiclab.guardbee.core.OAuth2AuthenticationToken
+import com.elogiclab.guardbee.core.OAuth2Authenticator
 
 case class GoogleAccessToken()
 
-case class GoogleAuthenticationToken(code: Option[String], error: Option[String], state: Option[String])
 /**
  * @author Marco Sarti
  *
  */
-class GoogleAuthenticatorPlugin(app: Application) extends GoogleConfiguration(app) with Authenticator with Plugin with OAuth2Client {
+class GoogleAuthenticatorPlugin(app: Application) extends GoogleConfiguration(app) with OAuth2Authenticator with Plugin with OAuth2Client {
   val ProviderId: String = "google"
-  val logger = Logger("guardbee-google")
 
-  type AuthenticationToken = GoogleAuthenticationToken
-
-  val TokenContstraint = Constraint[GoogleAuthenticationToken] { t: GoogleAuthenticationToken =>
+  val TokenContstraint = Constraint[OAuth2AuthenticationToken] { t: OAuth2AuthenticationToken =>
     t.code.map { c =>
       Valid
     }.getOrElse(Invalid("guardbee.googleauth.error.unauthorized", t.error.getOrElse("Unknown")))
   }
 
-  def obtainCredentials[A](request: Request[A]): Either[Errors, GoogleAuthenticationToken] = {
-    val form = Form(
-      mapping(
-        "code" -> optional(text),
-        "error" -> optional(text),
-        "state" -> optional(text))(GoogleAuthenticationToken.apply)(GoogleAuthenticationToken.unapply)
-        .verifying(TokenContstraint))
-    form.bindFromRequest()(request).fold({ errors =>
-      logger.warn("Errors obtaining google code: " + errors.errors.map(f => f.key + "->" + f.message).mkString)
-      Left(Errors.FormErrors(errors.errors))
-    }, { success =>
-      Right(success)
-    })
 
-  }
-
-  def authenticate(authToken: GoogleAuthenticationToken): Either[Errors, Authentication] = {
+  def authenticate(authToken: OAuth2AuthenticationToken): Either[Errors, Authentication] = {
     def getAuthentication(user: User): Either[Errors, Authentication] = Right(Authentication(user.username, ProviderId, None))
-    def createProfileIfNeeded(user: User): Either[Errors, User] = {
-      GoogleCreateProfile match {
-        case true => {
-          GuardbeeService.UserService[User].getByEmail(user.email).map { u =>
-            Right(u)
-          }.getOrElse(GuardbeeService.UserService[User].createUser(user, GoogleDefaultProfileRoles))
-        }
-        case _ => Right(user)
+    
+    def verifyAccount(user: User) : Either[Errors, User] = {
+      GuardbeeService.UserService[User].getByEmail(user.email).filter(_.isValid).map { u =>
+        Right(u)
+      }.getOrElse {
+        logger.info("Account "+user.email+" not found. Cannot authorize this Google account, please register user before attempt to login")
+        Left(Errors("guardbee.error.accountNotFound"))
       }
     }
+    
 
     authToken.code.map { c =>
       for (
         access_token <- getAccessToken(c).right;
         profile <- getProfile(access_token.access_token).right;
-        user <- createProfileIfNeeded(profile).right;
+        user <- verifyAccount(profile).right;
         authentication <- getAuthentication(user).right
       ) yield authentication
     }.getOrElse(Left(Errors("guardbee.googleauth.error.unauthorized", "invalid_code")))

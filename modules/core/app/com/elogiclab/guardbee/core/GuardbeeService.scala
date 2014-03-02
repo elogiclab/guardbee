@@ -63,7 +63,11 @@ class GuardbeeServicePlugin(app: Application) extends Plugin with GuardbeeServic
   def removeAuthentication(result: => Result) = sessionManager.removeAuthentication(result)
 
   lazy val Authenticators: Map[String, Authenticator] = {
-    app.plugins.filter(p => classOf[Authenticator].isAssignableFrom(p.getClass)).map(p => (p.asInstanceOf[Authenticator].ProviderId, p.asInstanceOf[Authenticator])).toMap
+    app.plugins.filter(p => classOf[Authenticator].isAssignableFrom(p.getClass))
+    .map{p => 
+      logger.debug("Found authenticator: "+p.asInstanceOf[Authenticator].ProviderId)
+      (p.asInstanceOf[Authenticator].ProviderId, p.asInstanceOf[Authenticator])
+      }.toMap
   }
 
   def UserService[T <: User] = app.plugin[UserService[T]].getOrElse(sys.error("Could not load UserService plugin"))

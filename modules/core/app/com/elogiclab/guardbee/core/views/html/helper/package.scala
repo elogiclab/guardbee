@@ -23,38 +23,18 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  *
  */
+package com.elogiclab.guardbee.core.views.html.helper
+
 /**
  * @author Marco Sarti
  *
  */
-import play.api._
-import com.elogiclab.guardbee.core.GuardbeeService
-import com.elogiclab.guardbee.core.User
-import org.joda.time.DateTime
-import com.elogiclab.guardbee.core.GuardbeeService
-
-object Global extends GlobalSettings {
-
-  override def onStart(app: Application) {
-    Logger.info("Application has started")
-    
-    GuardbeeService.UserService[User].getByUsername("msarti").orElse {
-    
-	    GuardbeeService.UserService[User].createUser(new User {
-	      val username = "msarti"
-	      val fullName = "Marco Sarti"
-	      val email = "marco.sarti@gmail.com"
-	      val enabled = true
-	      val expirationDate = Some(DateTime.now.plusMonths(2))
-	    }, GuardbeeService.Configuration.DefaultProfileRoles)
-	    GuardbeeService.UserService[User].updatePassword("msarti", GuardbeeService.PasswordProvider.hash("password"))
-	    None
-    }
-    
-  }  
+import views.html.helper.FieldConstructor
+import views.html.helper.FieldElements
+package object form {
   
-  override def onStop(app: Application) {
-    Logger.info("Application shutdown...")
-  }  
-    
+  implicit val twitterBootstrapField = new FieldConstructor {
+    def apply(elts: FieldElements) = guardbeeFieldConstructor(elts)
+  }
+
 }
