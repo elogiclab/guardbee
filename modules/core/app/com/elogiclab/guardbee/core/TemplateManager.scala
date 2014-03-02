@@ -29,6 +29,7 @@ import play.api.Plugin
 import play.api.Application
 import play.api.mvc.Flash
 import play.api.templates.Html
+import play.api.data.Form
 
 
 /**
@@ -37,11 +38,11 @@ import play.api.templates.Html
  */
 trait TemplateManager {
   
-  def loginPage(redirectUrl: String = "/")(implicit flash: Flash): Html
+  def loginPage(form: Form[UsernamePasswordAuthenticationToken], redirectUrl: String = "/")(implicit flash: Flash): Html
 
 }
 
 class DefaultTemplateManagerPlugin(app:Application) extends Plugin with TemplateManager {
-  def loginPage(redirectUrl: String = "/")(implicit flash: Flash): Html = com.elogiclab.guardbee.core.views.html.login(redirectUrl)(flash)
+  def loginPage(form: Form[UsernamePasswordAuthenticationToken], redirectUrl: String = "/")(implicit flash: Flash): Html = com.elogiclab.guardbee.core.views.html.login(form, redirectUrl)(flash)
 }
 

@@ -39,44 +39,25 @@ import com.elogiclab.guardbee.core.User
 import com.elogiclab.guardbee.core.Authentication
 import org.joda.time.DateTime
 import com.elogiclab.guardbee.core.Password
-
-case class LocalAccountAuthenticationToken(username: String, password: String, remember_me: Option[Boolean])
+import com.elogiclab.guardbee.core.UsernamePasswordAuthenticationToken
+import com.elogiclab.guardbee.core.AuthenticationToken
+import com.elogiclab.guardbee.core.UsernamePasswordAuthenticator
 
 /**
  * @author Marco Sarti
  *
  */
-class LocalAccountAuthenticatorPlugin(app: Application) extends Authenticator with Plugin {
+class LocalAccountAuthenticatorPlugin(app: Application) extends UsernamePasswordAuthenticator with Plugin {
   val ProviderId = "local"
-  val logger = Logger("guardbee")
 
-  type AuthenticationToken = LocalAccountAuthenticationToken
-
-  val form = Form(
-    mapping(
-      "username" -> nonEmptyText,
-      "password" -> nonEmptyText,
-      "remember-me" -> optional(boolean))(LocalAccountAuthenticationToken.apply)(LocalAccountAuthenticationToken.unapply))
-
-  def obtainCredentials[A](request: Request[A]): Either[Errors, LocalAccountAuthenticationToken] = {
-    form.bindFromRequest()(request).fold({ err =>
-      logger.debug("Errors obtaining credentials from request: " + err.errors.map(f => f.key + "->" + f.message).mkString)
-      val errors = err.errors.map { e =>
-        Msg(e.message, e.args)
-      }
-      Left(Errors(errors))
-    }, { success =>
-      Right(success)
-    })
-
-  }
   
   import com.elogiclab.guardbee.core.GuardbeeService._
   def obtainPassword(username: String) = UserService[User].obtainPassword(username)
   def getByUsername(username: String) = UserService[User].getByUsername(username)
   def matchPassword(candidate: String, pwd: Password) = PasswordProvider.matches(candidate, pwd)
+  
 
-  def authenticate(authToken: LocalAccountAuthenticationToken): Either[Errors, Authentication] = {
+  def authenticate(authToken: UsernamePasswordAuthenticationToken): Either[Errors, Authentication] = {
     logger.debug("User " + authToken.username + " attempt to authenticate")
 
     val principal = for (

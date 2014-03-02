@@ -43,6 +43,7 @@ import com.elogiclab.guardbee.core.User
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.concurrent.Await
 import com.elogiclab.guardbee.core.Authentication
+import com.elogiclab.guardbee.core.AuthenticationToken
 
 case class FacebookAuthenticationToken(code: String, remember_me: Option[Boolean])
 
@@ -54,21 +55,6 @@ class FacebookAuthenticatorPlugin(app: Application) extends Authenticator with P
   val logger = Logger("guardbee")
 
   val ProviderId: String = "facebook"
-
-  type AuthenticationToken = FacebookAuthenticationToken
-
-  def obtainCredentials[A](request: Request[A]): Either[Errors, FacebookAuthenticationToken] = {
-    val form = Form(
-      mapping(
-        "code" -> nonEmptyText,
-        "remember-me" -> optional(boolean))(FacebookAuthenticationToken.apply)(FacebookAuthenticationToken.unapply))
-    form.bindFromRequest()(request).fold({ errors =>
-      logger.warn("Errors obtaining facebook code: " + errors.errors.map(f => f.key + "->" + f.message).mkString)
-      Left(Errors(Seq(Msg("guardbee.error"))))
-    }, { success =>
-      Right(success)
-    })
-  }
 
   case class FacebookReponse(status: Int, access_token: String, expires: Int)
 
@@ -117,11 +103,15 @@ class FacebookAuthenticatorPlugin(app: Application) extends Authenticator with P
   }
 
   def authenticate(authToken: FacebookAuthenticationToken): Either[Errors, Authentication] = {
-    loginToFacebook(authToken.code).fold ({ errors =>
+    loginToFacebook(authToken.code).fold({ errors =>
       Left(errors)
     }, { user =>
       Right(Authentication(username = user.username, provider = ProviderId, scope = None, remember_me = authToken.remember_me.getOrElse(false)))
     })
+  }
+
+  def performAuthentication(authToken: AuthenticationToken): Either[Errors, Authentication] = {
+    ???
   }
 
 }

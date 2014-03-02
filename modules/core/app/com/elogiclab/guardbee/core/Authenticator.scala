@@ -31,36 +31,49 @@ import scala.concurrent._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.data.Forms._
 import play.api.data.Form
+import play.api.Logger
 
 /**
  * @author Marco Sarti
  *
  */
 trait Authenticator {
-
   def ProviderId: String
 
-  type AuthenticationToken
+  def performAuthentication(authToken: AuthenticationToken): Either[Errors, Authentication]
 
-  def obtainDestinationUrl[A](request: Request[A]): Option[String] = {
-		Form(
-			single("dest" -> optional(text))
-		).bindFromRequest()(request).fold({ errors =>
-		  None
-		}, { value => 
-		  value
-		})
+}
+
+trait UsernamePasswordAuthenticator extends Authenticator {
+  val logger = Logger("guardbee")
+
+  def authenticate(authToken: UsernamePasswordAuthenticationToken): Either[Errors, Authentication]
+
+  def performAuthentication(authToken: AuthenticationToken): Either[Errors, Authentication] = {
+    authToken match {
+      case token: UsernamePasswordAuthenticationToken => authenticate(token)
+      case _ => {
+        logger.error("Invalid auth token received: " + authToken.getClass.getName)
+        Left(Errors("guardbee.error.internalServerError"))
+      }
+    }
   }
 
-  def obtainCredentials[A](request: Request[A]): Either[Errors, AuthenticationToken]
+}
 
-  def authenticate(authToken: AuthenticationToken): Either[Errors, Authentication]
+trait OAuth2Authenticator  extends Authenticator {
+  val logger = Logger("guardbee")
 
-  def performAuthentication[A](request: Request[A]): Either[Errors, Authentication] = {
-    for (
-      auth_token <- obtainCredentials(request).right;
-      authentication <- authenticate(auth_token).right
-    ) yield authentication
+  def authenticate(authToken: OAuth2AuthenticationToken): Either[Errors, Authentication]
+
+  def performAuthentication(authToken: AuthenticationToken): Either[Errors, Authentication] = {
+    authToken match {
+      case token: OAuth2AuthenticationToken => authenticate(token)
+      case _ => {
+        logger.error("Invalid auth token received: " + authToken.getClass.getName)
+        Left(Errors("guardbee.error.internalServerError"))
+      }
+    }
   }
 
 }

@@ -42,8 +42,9 @@ import play.api.data.Form
 import play.api.data.Forms._
 import com.elogiclab.guardbee.core.Msg
 import org.joda.time.DateTime
+import com.elogiclab.guardbee.core.UsernamePasswordAuthenticationToken
+import com.elogiclab.guardbee.core.UsernamePasswordAuthenticator
 
-case class LdapAuthenticationToken(username: String, password: String, remember_me: Option[Boolean])
 
 trait LdapUser extends User {
   def userDN: String
@@ -53,12 +54,8 @@ trait LdapUser extends User {
  * @author Marco Sarti
  *
  */
-class LdapAuthenticatorPlugin(app: Application) extends LdapConfiguration(app) with Authenticator with Plugin {
+class LdapAuthenticatorPlugin(app: Application) extends LdapConfiguration(app) with UsernamePasswordAuthenticator with Plugin {
   val ProviderId = "ldap"
-
-  private val logger = Logger("guardbee-ldap")
-
-  type AuthenticationToken = LdapAuthenticationToken
 
   def connect: Either[Errors, LDAPConnection] = {
     try {
@@ -138,31 +135,13 @@ class LdapAuthenticatorPlugin(app: Application) extends LdapConfiguration(app) w
     }
   }
 
-  val form = Form(
-    mapping(
-      "username" -> nonEmptyText,
-      "password" -> nonEmptyText,
-      "remember-me" -> optional(boolean))(LdapAuthenticationToken.apply)(LdapAuthenticationToken.unapply))
-
-  def obtainCredentials[A](request: Request[A]): Either[Errors, LdapAuthenticationToken] = {
-    form.bindFromRequest()(request).fold({ err =>
-      logger.debug("Errors obtaining credentials from request: " + err.errors.map(f => f.key + "->" + f.message).mkString)
-      val errors = err.errors.map { e =>
-        Msg(e.message, e.args)
-      }
-      Left(Errors(errors))
-    }, { success =>
-      Right(success)
-    })
-
-  }
 
 	def createAuthentication(u: LdapUser, remember_me:Option[Boolean]): Either[Errors, Authentication] = {
 	  Right(Authentication(u.username, ProviderId, None, DateTime.now, remember_me.getOrElse(false)))
 	}
   
   
-  def authenticate(authToken: LdapAuthenticationToken): Either[Errors, Authentication] = {
+  def authenticate(authToken: UsernamePasswordAuthenticationToken): Either[Errors, Authentication] = {
     logger.debug(authToken.username + " attempts LDAP authentication")
     
     
