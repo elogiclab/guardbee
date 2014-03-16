@@ -82,14 +82,28 @@ object LdapAuthenticatorSpec extends Specification {
   }
 
 
-  "Should authenticate" in new WithApplication {
-    val plugin = new LdapAuthenticatorPlugin(app)
+  "Should authenticate" in new WithApplication(app = new FakeApplication(additionalPlugins = Seq("com.elogiclab.guardbee.core.GuardbeeServicePlugin"))) {
+    val plugin = new LdapAuthenticatorPlugin(app) {
+      override def validateAccount(user: LdapUser) = Right(user)
+    }
     val result = plugin.authenticate(UsernamePasswordAuthenticationToken("msarti", "123456", None))
     
     result must beRight
     
   }
-  "Should NOT authenticate with bad credentials" in new WithApplication {
+  "Should NOT authenticate if account is invalid" in new WithApplication(app = new FakeApplication(additionalPlugins = Seq("com.elogiclab.guardbee.core.GuardbeeServicePlugin"))) {
+    val plugin = new LdapAuthenticatorPlugin(app) {
+      override def validateAccount(user: LdapUser) = Left(LdapInvalidAccountError)
+    }
+    val result = plugin.authenticate(UsernamePasswordAuthenticationToken("msarti", "123456", None))
+    
+    result must beLeft
+    
+  }
+
+  
+  
+  "Should NOT authenticate with bad credentials" in new WithApplication(app = new FakeApplication(additionalPlugins = Seq("com.elogiclab.guardbee.core.GuardbeeServicePlugin"))) {
     val plugin = new LdapAuthenticatorPlugin(app)
     val result = plugin.authenticate(UsernamePasswordAuthenticationToken("msarti", "bad", None))
     

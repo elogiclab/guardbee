@@ -27,15 +27,14 @@ package com.elogiclab.guardbee.providers.ldap
 
 import play.api.Play
 import play.api.Application
+import com.elogiclab.guardbee.core.Configuration
 
 /**
  * @author Marco Sarti
  *
  */
-class LdapConfiguration(application: Application) {
+class LdapConfiguration(application: Application) extends Configuration(application) {
   
-  
-  val applicationKey = "guardbee"
   
     //LDAP
   lazy val LDAPHost = application.configuration.getString(applicationKey + ".ldap.host").getOrElse("localhost")
@@ -46,7 +45,7 @@ class LdapConfiguration(application: Application) {
   lazy val LDAPemailAttr = application.configuration.getString(applicationKey + ".ldap.emailAttr").getOrElse("mail")
   lazy val LDAPUsernameAttr = application.configuration.getString(applicationKey + ".ldap.usernameAttr").getOrElse("uid")
   lazy val LDAPSearchBase = application.configuration.getString(applicationKey + ".ldap.searchBase").getOrElse("dc=elogiclab,dc=com")
-
+  lazy val LDAPRequiresExistingAccount = application.configuration.getBoolean(applicationKey + ".ldap.requiresExistingAccount").getOrElse(false)
 
 }
 
