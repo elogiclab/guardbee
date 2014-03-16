@@ -1,33 +1,46 @@
 @* login Template File *@
-@(form: Form[com.elogiclab.guardbee.core.UsernamePasswordAuthenticationToken], dest: String)(implicit flash: Flash)
+@(form: Form[com.elogiclab.guardbee.core.UsernamePasswordAuthenticationToken], dest: String)(implicit flash: Flash, lang: Lang)
 @import com.elogiclab.guardbee.core.RoutesHelper
 @import com.elogiclab.guardbee.core.GuardbeeService._
 @import views.html.helper
 @import com.elogiclab.guardbee.core.views.html.helper.form._
 @base("Login") {
-<style type="text/css">
-.voffset  { margin-top: 200px; }
-.social-button  { margin-top: 5px; }
-.btn-facebook { background-color: #3b5998; color: white; }
-.btn-google { background-color: #C63D2D; color: white; }
-.btn-twitter { background-color: #4099FF; color: white; }
-.btn-linkedin { background-color: #4875B4; color: white; }
-</style>	
-<script>
-$(function() {
-	$('#google-login').click(function() {
-		var url = '@RoutesHelper.loginWith("google", dest)';
-		$('form').attr('action', url).submit();
-	});
-	$('#facebook-login').click(function() {
-		var url = '@RoutesHelper.loginWith("google", dest)';
-		$('form').attr('action', url).submit();
-	});
+  <style type="text/css">
+	.voffset  { margin-top: 200px; }
+   .nav-tabs { margin-bottom: 10px; }
+   .social-button  { margin-top: 5px; }
+   .btn-facebook { background-color: #3b5998; color: white; }
+   .btn-google { background-color: #C63D2D; color: white; }
+   .btn-twitter { background-color: #4099FF; color: white; }
+   .btn-linkedin { background-color: #4875B4; color: white; }
+  </style>
+  <script type="text/javascript">
+function activateLoginForm(login_type) {
+                var form_id = login_type+'-login-form';
+                var tab_id = login_type+'-tab';
+      $('.form-tab').each( function() {
+           $(this).removeClass('active');
+      });
+      $('#'+tab_id).addClass('active');
+      $('.login-form').each( function() {
+           $(this).addClass('hidden');
+      });
+      $('#'+form_id).removeClass('hidden');
+   }  
 
-});
 
 
-</script>	
+   $( function() {
+                activateLoginForm('local');      
+   
+   
+       $('.form-tab-anchor').click( function(obj) {
+        var theId = $(obj.target).attr('id');
+        var str = theId.substring(0, theId.indexOf('-'));
+                  activateLoginForm(str);
+       });
+     });
+  </script>
 	
 <div class="container">
 	@flash.get("error").map { error =>
@@ -38,45 +51,19 @@ $(function() {
 	}
     <div class="row voffset">
         <div class="col-md-4 col-md-offset-4">
+        <ul class="nav nav-tabs">
+          	  @UsernamePasswordAuthenticators.map { a =>
+          	  	<li class="form-tab" id="@a._1-tab"><a class="form-tab-anchor" id="@a._1-tab-anchor" href="#" name="@a._1-tab-anchor">@Messages("guardbee.label."+a._1+"-login")</a></li>
+          	  }
+        </ul>        
+        
+        
+        
           	<div class="well">
-              <form role="form" action='@RoutesHelper.login("local", Some(dest))' method="post">
-              	@helper.inputText(form("username"), 'id -> "username", 'class -> "form-control")
-              
-              	@helper.inputPassword(form("password"), 'id -> "password", 'class -> "form-control")
-
-                <div class="form-group">
-                  
-                  <button type="submit" class="btn btn-primary btn-block">Login</button>
-                  
-                </div>
-                
-                <div class="row">
-                  <div class="col-xs-6 col-md-8">
-                    <div class="checkbox">
-                      <label>
-                        <input checked="checked" type="checkbox" value="true" name="remember-me"> Remember me
-                      </label>
-                    </div>
-                  </div>
-                  
-                  
-                  <div class="col-xs-6 col-md-4">
-                    <button type="button" class="btn btn-link  pull-right small">Help</button>
-                  </div>
-                </div>
-                <div class="row">
-					<a class="btn btn-facebook col-md-4 col-md-offset-1 social-button" id="facebook-login" href="#">
-								<i class="fa fa-facebook fa-lg"></i> | Facebook</a>		          
-					<a class="btn btn-google col-md-4 col-md-offset-1 social-button" id="google-login" href="#">
-								<i class="fa fa-google-plus fa-lg"></i> | Google</a>		          
-					<a class="btn btn-twitter col-md-4 col-md-offset-1 social-button" href="#">
-								<i class="fa fa-twitter fa-lg"></i> | Twitter</a>		          
-					<a class="btn btn-linkedin col-md-4 col-md-offset-1 social-button" href="#">
-								<i class="fa fa-linkedin fa-lg"></i> | LinkedIn</a>	
-				</div>	          
-                
-              </form>
-          </div>
+          	  @UsernamePasswordAuthenticators.map { a =>
+          	  	@login_form(a._1, dest)
+          	  }
+            </div>
       	</div>
     </div>
 

@@ -69,6 +69,16 @@ class GuardbeeServicePlugin(app: Application) extends Plugin with GuardbeeServic
       (p.asInstanceOf[Authenticator].ProviderId, p.asInstanceOf[Authenticator])
       }.toMap
   }
+  
+  def UsernamePasswordAuthenticators: Map[String, UsernamePasswordAuthenticator] = {
+    Authenticators.filter { a =>
+      classOf[UsernamePasswordAuthenticator].isAssignableFrom(a._2.getClass)
+    }.map { a =>
+      (a._1, a._2.asInstanceOf[UsernamePasswordAuthenticator])
+    }
+  }
+  
+  
 
   def UserService[T <: User] = app.plugin[UserService[T]].getOrElse(sys.error("Could not load UserService plugin"))
   
@@ -105,6 +115,8 @@ object GuardbeeService extends GuardbeeService {
   def TemplateManager: TemplateManager = plugin.TemplateManager
   
   def Authenticators: Map[String, Authenticator] = plugin.Authenticators
+  
+  def UsernamePasswordAuthenticators: Map[String, UsernamePasswordAuthenticator] = plugin.UsernamePasswordAuthenticators
   
   def PasswordProvider = plugin.PasswordProvider
 
