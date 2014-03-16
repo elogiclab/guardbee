@@ -3,11 +3,11 @@ guardbee.error.internal=Internal error (code: {0})
 
 guardbee.error.authenticationFailed=Invalid username or password
 
-guardbee.label.local-login=Login
-guardbee.label.ldap-login=LDAP Login
-guardbee.label.login-with-local=Login
-guardbee.label.login-with-ldap=Login with LDAP
-guardbee.label.remember-me=Remember me
+guardbee.label.local-login=Accesso
+guardbee.label.ldap-login=Accesso LDAP
+guardbee.label.login-with-local=Accedi
+guardbee.label.login-with-ldap=Accedi con LDAP
+guardbee.label.remember-me=Rimani collegato
 guardbee.label.username=Username
 guardbee.label.password=Password
 

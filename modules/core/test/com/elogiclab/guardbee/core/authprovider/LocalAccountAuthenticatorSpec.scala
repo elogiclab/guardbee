@@ -32,6 +32,7 @@ import com.elogiclab.guardbee.core.Password
 import org.mindrot.jbcrypt.BCrypt
 import com.elogiclab.guardbee.core.User
 import org.joda.time.DateTime
+import com.elogiclab.guardbee.core.UsernamePasswordAuthenticationToken
 
 
 /**
@@ -41,14 +42,6 @@ import org.joda.time.DateTime
 object LocalAccountAuthenticatorSpec extends Specification {
   
   "LocalAccountAuthenticator" should {
-    "Should obtain credentials fron request" in new WithApplication {
-      val request = FakeRequest("POST","/").withFormUrlEncodedBody(("username", "username"), ("password", "password"))
-      val plugin = new LocalAccountAuthenticatorPlugin(app)
-      val token = plugin.obtainCredentials(request)
-      token.isRight must beTrue
-      token.right.get.username must equalTo("username")
-      token.right.get.password must equalTo("password")
-    }
   
     "should authenticate" in new WithApplication {
       
@@ -66,7 +59,7 @@ object LocalAccountAuthenticatorSpec extends Specification {
       }
       
       
-      val token = LocalAccountAuthenticationToken("username", "password", None)
+      val token = UsernamePasswordAuthenticationToken("username", "password", None)
       
       val auth = plugin.authenticate(token)
       
