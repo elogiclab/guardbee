@@ -25,25 +25,14 @@
  */
 package com.elogiclab.guardbee.core
 
-import play.api.Plugin
-import play.api.Application
-import play.api.mvc.Flash
-import play.api.templates.Html
-import play.api.data.Form
-import play.api.i18n.Lang
-
-
 /**
  * @author Marco Sarti
  *
  */
-trait TemplateManager {
-  
-  def loginPage(form: Form[UsernamePasswordAuthenticationToken], redirectUrl: String = "/")(implicit flash: Flash, lang: Lang): Html
+trait AuthenticationToken {
 
 }
 
-class DefaultTemplateManagerPlugin(app:Application) extends Plugin with TemplateManager {
-  def loginPage(form: Form[UsernamePasswordAuthenticationToken], redirectUrl: String = "/")(implicit flash: Flash, lang: Lang): Html = com.elogiclab.guardbee.core.views.html.login(form, redirectUrl)(flash, lang)
-}
+case class UsernamePasswordAuthenticationToken(username: String, password: String, remember_me: Option[Boolean]) extends AuthenticationToken
 
+case class OAuth2AuthenticationToken(code: Option[String], error: Option[String], state: Option[String]) extends AuthenticationToken

@@ -45,31 +45,52 @@ object LoginLogoutController extends Controller {
 
   val logger = Logger("guardbee")
 
+  val LoginForm = Form(
+    mapping(
+      "username" -> nonEmptyText,
+      "password" -> nonEmptyText,
+      "remember-me" -> optional(boolean))(UsernamePasswordAuthenticationToken.apply)(UsernamePasswordAuthenticationToken.unapply))
+
+  val OAuth2Form = Form(
+    mapping(
+      "code" -> optional(text),
+      "error" -> optional(text),
+      "state" -> optional(text))(OAuth2AuthenticationToken.apply)(OAuth2AuthenticationToken.unapply))
+
   def loginPage(dest: Option[String]) = Action { implicit request =>
-    Ok(GuardbeeService.TemplateManager.loginPage(dest.getOrElse("/")))
+    Ok(GuardbeeService.TemplateManager.loginPage(LoginForm, dest.getOrElse("/")))
   }
 
   def login(provider: String, dest: Option[String]) = Action { implicit request =>
-    GuardbeeService.Authenticators.get(provider).map { authenticator: Authenticator =>
-      logger.info("Attempt to authenticate: provider '"+provider+"'")
-      authenticator.performAuthentication(request).fold({ errors =>
-      	logger.info("Authentication failed")
-        Redirect(RoutesHelper.loginPage(dest.getOrElse("/"))).flashing("error" -> errors.printHTML)
-      }, { authentication =>
-      	logger.info("Authentication succesful")
-        Redirect(dest.getOrElse("/")).withCookies(GuardbeeService.saveAuthentication(authentication))
-      })
-    }.getOrElse(InternalServerError)
+    LoginForm.bindFromRequest()(request).fold({ failed =>
+      val errors = Errors.FormErrors(failed.errors)
+      logger.debug("Failed to bind request: " + errors.print)
+      Redirect(RoutesHelper.loginPage(dest.orElse(Some("/")))).flashing("error" -> errors.printHTML)
+    }, { token =>
+      GuardbeeService.Authenticators.get(provider).map { authenticator: Authenticator =>
+        logger.debug("Attempt to authenticate: provider '" + provider + "'")
+        authenticator.performAuthentication(token).fold({ errors =>
+          logger.debug("Authentication failed: " + errors.print)
+          Redirect(RoutesHelper.loginPage(dest.orElse(Some("/")))).flashing("error" -> errors.printHTML)
+        }, { authentication =>
+          logger.info("User '" + authentication.username + "' authenticated")
+          Redirect(dest.getOrElse("/")).withCookies(GuardbeeService.saveAuthentication(authentication))
+        })
+      }.getOrElse {
+        logger.error("The provider "+provider+" is not supported")
+        InternalServerError
+      }
+    })
   }
 
   def loginWith(provider: String, dest: String) = Action { implicit request =>
-    logger.debug("dest = "+dest)
-    
+    logger.debug("dest = " + dest)
+
     GuardbeeService.Authenticators.get(provider).map { authenticator: Authenticator =>
       authenticator match {
         case oauth2: OAuth2Client => {
           val redirect = oauth2.getAuthURL
-          logger.debug("queryString = "+redirect.queryString)
+          logger.debug("queryString = " + redirect.queryString)
           Redirect(redirect.url, redirect.queryString)
         }
         case _ => InternalServerError
@@ -77,9 +98,23 @@ object LoginLogoutController extends Controller {
     }.getOrElse(InternalServerError)
   }
 
-  def oauthCallback(provider: String, state: Option[String]) = {
-    logger.debug("state = "+state)
-    login(provider, state)
+  def oauthCallback(provider: String, state: Option[String]) = Action { implicit request =>
+    OAuth2Form.bindFromRequest()(request).fold({ failed =>
+      val errors = Errors.FormErrors(failed.errors)
+      logger.debug("Error binding request: " + errors.print)
+      Redirect(RoutesHelper.loginPage(state.orElse(Some("/")))).flashing("error" -> errors.printHTML)
+    }, { token =>
+      GuardbeeService.Authenticators.get(provider).map { authenticator: Authenticator =>
+        logger.debug("Attempt to authenticate: provider '" + provider + "'")
+        authenticator.performAuthentication(token).fold({ errors =>
+          logger.debug("Authentication failed: " + errors.print)
+          Redirect(RoutesHelper.loginPage(state.orElse(Some("/")))).flashing("error" -> errors.printHTML)
+        }, { authentication =>
+          logger.info("User '" + authentication.username + "' authenticated")
+          Redirect(state.getOrElse("/")).withCookies(GuardbeeService.saveAuthentication(authentication))
+        })
+      }.getOrElse(InternalServerError)
+    })
   }
 
   def logout() = Action { request =>

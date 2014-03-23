@@ -1,12 +1,10 @@
 play.Project.playScalaSettings
 
-organization := "com.elogiclab"
+organization := Common.buildOrganization
 
-name := "guardbee-ldap"
+version := Common.buildVersion
 
-version := "1.0-SNAPSHOT"
-
-scalaVersion := "2.10.3"
+scalaVersion := Common.buildScalaVersion
 
 scalacOptions ++= Seq("-Xlint","-deprecation", "-unchecked","-encoding", "utf8")
 
@@ -17,7 +15,7 @@ resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/repo/"
 
 libraryDependencies ++= Seq(
   "com.unboundid" % "unboundid-ldapsdk" % "2.3.6",
-  "com.elogiclab" %% "guardbee-core" % "1.0-SNAPSHOT"
+  Common.buildOrganization %% "guardbee-core" % Common.buildVersion
 )
 
 

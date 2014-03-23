@@ -23,27 +23,24 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  *
  */
-package com.elogiclab.guardbee.core
+package com.elogiclab.guardbee.providers.ldap
 
-import play.api.Plugin
-import play.api.Application
-import play.api.mvc.Flash
-import play.api.templates.Html
-import play.api.data.Form
-import play.api.i18n.Lang
-
+import com.elogiclab.guardbee.core.ErrorResults
+import com.elogiclab.guardbee.core.Errors
+import com.elogiclab.guardbee.core.Msg
 
 /**
  * @author Marco Sarti
  *
  */
-trait TemplateManager {
+trait LdapErrorResults extends ErrorResults {
   
-  def loginPage(form: Form[UsernamePasswordAuthenticationToken], redirectUrl: String = "/")(implicit flash: Flash, lang: Lang): Html
+  def LdapMissingAttributeError(attr: String) = Errors(Seq(Msg("guardbee.error.ldap.missingAttribute", attr)))
+  
+  val LdapInvalidAccountError = Errors(Seq(Msg("guardbee.error.ldap.invalidAccount")))
+
+  val LdapAccountNotFoundError = Errors(Seq(Msg("guardbee.error.ldap.accountNotFound")))
+
+  val LdapEmailAlreadyInUseError = Errors(Seq(Msg("guardbee.error.ldap.emailAlreadyInUse")))
 
 }
-
-class DefaultTemplateManagerPlugin(app:Application) extends Plugin with TemplateManager {
-  def loginPage(form: Form[UsernamePasswordAuthenticationToken], redirectUrl: String = "/")(implicit flash: Flash, lang: Lang): Html = com.elogiclab.guardbee.core.views.html.login(form, redirectUrl)(flash, lang)
-}
-

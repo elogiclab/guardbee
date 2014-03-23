@@ -38,16 +38,16 @@ object Global extends GlobalSettings {
   override def onStart(app: Application) {
     Logger.info("Application has started")
     
-    GuardbeeService.UserService[User].getByUsername("username").orElse {
+    GuardbeeService.UserService[User].getByUsername("msarti").orElse {
     
 	    GuardbeeService.UserService[User].createUser(new User {
-	      val username = "username"
-	      val fullName = "fullname"
-	      val email = "username@example.org"
+	      val username = "msarti"
+	      val fullName = "Marco Sarti"
+	      val email = "marco.sarti@gmail.com"
 	      val enabled = true
 	      val expirationDate = Some(DateTime.now.plusMonths(2))
 	    }, GuardbeeService.Configuration.DefaultProfileRoles)
-	    GuardbeeService.UserService[User].updatePassword("username", GuardbeeService.PasswordProvider.hash("password"))
+	    GuardbeeService.UserService[User].updatePassword("msarti", GuardbeeService.PasswordProvider.hash("password"))
 	    None
     }
     

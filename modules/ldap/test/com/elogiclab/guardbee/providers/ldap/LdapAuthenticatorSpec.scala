@@ -35,6 +35,7 @@ import com.unboundid.ldap.sdk.LDAPConnection
 import play.api.Logger
 import play.api.test.FakeApplication
 import play.api.test.FakeRequest
+import com.elogiclab.guardbee.core.UsernamePasswordAuthenticationToken
 
 /**
  * @author Marco Sarti
@@ -80,39 +81,45 @@ object LdapAuthenticatorSpec extends Specification {
 
   }
 
-  "Should obtain credentials fron request" in new WithApplication {
-    val request = FakeRequest("POST", "/").withFormUrlEncodedBody(("username", "username"), ("password", "password"))
-    val plugin = new LdapAuthenticatorPlugin(app)
-    val token = plugin.obtainCredentials(request)
-    token.isRight must beTrue
-    token.right.get.username must equalTo("username")
-    token.right.get.password must equalTo("password")
-  }
 
-  "Should authenticate" in new WithApplication {
-    val plugin = new LdapAuthenticatorPlugin(app)
-    val result = plugin.authenticate(LdapAuthenticationToken("msarti", "123456", None))
+  "Should authenticate" in new WithApplication(app = new FakeApplication(additionalPlugins = Seq("com.elogiclab.guardbee.core.GuardbeeServicePlugin"))) {
+    val plugin = new LdapAuthenticatorPlugin(app) {
+      override def validateAccount(user: LdapUser) = Right(user)
+    }
+    val result = plugin.authenticate(UsernamePasswordAuthenticationToken("msarti", "123456", None))
     
     result must beRight
     
   }
-  "Should NOT authenticate with bad credentials" in new WithApplication {
+  "Should NOT authenticate if account is invalid" in new WithApplication(app = new FakeApplication(additionalPlugins = Seq("com.elogiclab.guardbee.core.GuardbeeServicePlugin"))) {
+    val plugin = new LdapAuthenticatorPlugin(app) {
+      override def validateAccount(user: LdapUser) = Left(LdapInvalidAccountError)
+    }
+    val result = plugin.authenticate(UsernamePasswordAuthenticationToken("msarti", "123456", None))
+    
+    result must beLeft
+    
+  }
+
+  
+  
+  "Should NOT authenticate with bad credentials" in new WithApplication(app = new FakeApplication(additionalPlugins = Seq("com.elogiclab.guardbee.core.GuardbeeServicePlugin"))) {
     val plugin = new LdapAuthenticatorPlugin(app)
-    val result = plugin.authenticate(LdapAuthenticationToken("msarti", "bad", None))
+    val result = plugin.authenticate(UsernamePasswordAuthenticationToken("msarti", "bad", None))
     
     result must beLeft
     
   }
   "Should NOT authenticate with blank password" in new WithApplication {
     val plugin = new LdapAuthenticatorPlugin(app)
-    val result = plugin.authenticate(LdapAuthenticationToken("msarti", "", None))
+    val result = plugin.authenticate(UsernamePasswordAuthenticationToken("msarti", "", None))
     
     result must beLeft
     
   }
   "Should NOT authenticate if user does not exist" in new WithApplication {
     val plugin = new LdapAuthenticatorPlugin(app)
-    val result = plugin.authenticate(LdapAuthenticationToken("notexists", "dummy", None))
+    val result = plugin.authenticate(UsernamePasswordAuthenticationToken("notexists", "dummy", None))
     
     result must beLeft
     

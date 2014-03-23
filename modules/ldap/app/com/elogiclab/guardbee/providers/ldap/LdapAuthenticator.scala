@@ -42,23 +42,25 @@ import play.api.data.Form
 import play.api.data.Forms._
 import com.elogiclab.guardbee.core.Msg
 import org.joda.time.DateTime
-
-case class LdapAuthenticationToken(username: String, password: String, remember_me: Option[Boolean])
+import com.elogiclab.guardbee.core.UsernamePasswordAuthenticationToken
+import com.elogiclab.guardbee.core.UsernamePasswordAuthenticator
+import com.elogiclab.guardbee.core.UserService
+import com.elogiclab.guardbee.core.GuardbeeService
+import com.elogiclab.guardbee.core.ErrorResults
 
 trait LdapUser extends User {
   def userDN: String
 }
 
+
+
+
 /**
  * @author Marco Sarti
  *
  */
-class LdapAuthenticatorPlugin(app: Application) extends LdapConfiguration(app) with Authenticator with Plugin {
+class LdapAuthenticatorPlugin(app: Application) extends LdapConfiguration(app) with UsernamePasswordAuthenticator with LdapErrorResults with Plugin {
   val ProviderId = "ldap"
-
-  private val logger = Logger("guardbee-ldap")
-
-  type AuthenticationToken = LdapAuthenticationToken
 
   def connect: Either[Errors, LDAPConnection] = {
     try {
@@ -67,7 +69,7 @@ class LdapAuthenticatorPlugin(app: Application) extends LdapConfiguration(app) w
     } catch {
       case e: Throwable => {
         logger.error("Error connecting to LDAP server: " + e.getMessage())
-        Left(Errors("guardbee.error.internal", ERROR_LDAP_UNAVAILABLE))
+        Left(InternalError(ERROR_LDAP_UNAVAILABLE))
       }
     }
   }
@@ -103,24 +105,24 @@ class LdapAuthenticatorPlugin(app: Application) extends LdapConfiguration(app) w
                 val userDN = entry.getDN()
               })
             }
-            case (None,_) => {
+            case (None, _) => {
               logger.error("Error creating user for " + userid + "; missing attribute " + entry.getAttribute(LDAPUsernameAttr))
-              Left(Errors("guardbee.error.ldap.missingAttribute", LDAPUsernameAttr))
+              Left(LdapMissingAttributeError(LDAPUsernameAttr))
             }
-            case (_,None) => {
+            case (_, None) => {
               logger.error("Error creating user for " + userid + "; missing attribute " + entry.getAttribute(LDAPemailAttr))
-              Left(Errors("guardbee.error.ldap.missingAttribute", LDAPemailAttr))
+              Left(LdapMissingAttributeError(LDAPemailAttr))
             }
 
           }
         }
-        case _ => Left(Errors("guardbee.error.authenticationFailed"))
+        case _ => Left(AuthenticationFailedError)
       }
 
     } catch {
       case e: Throwable => {
         logger.error("Error retrieving user " + userid + ": " + e.getMessage())
-        Left(Errors("guardbee.error.authenticationFailed"))
+        Left(AuthenticationFailedError)
       }
     }
   }
@@ -133,52 +135,59 @@ class LdapAuthenticatorPlugin(app: Application) extends LdapConfiguration(app) w
     } catch {
       case e: Throwable => {
         logger.error("User " + userDN + " authentication failed: " + e.getMessage())
-        Left(Errors("guardbee.error.authenticationFailed"))
+        Left(AuthenticationFailedError)
       }
     }
   }
-
-  val form = Form(
-    mapping(
-      "username" -> nonEmptyText,
-      "password" -> nonEmptyText,
-      "remember-me" -> optional(boolean))(LdapAuthenticationToken.apply)(LdapAuthenticationToken.unapply))
-
-  def obtainCredentials[A](request: Request[A]): Either[Errors, LdapAuthenticationToken] = {
-    form.bindFromRequest()(request).fold({ err =>
-      logger.debug("Errors obtaining credentials from request: " + err.errors.map(f => f.key + "->" + f.message).mkString)
-      val errors = err.errors.map { e =>
-        Msg(e.message, e.args)
+  
+  def createAccount(user: LdapUser) = {
+    GuardbeeService.UserService[User].getByEmail(user.email).map { u =>
+      Left(LdapEmailAlreadyInUseError)
+    }.getOrElse {
+      GuardbeeService.UserService[User].createUser(user, DefaultProfileRoles)
+    }
+  }
+  
+  
+  def validateAccount(user: LdapUser) = {
+    
+    GuardbeeService.UserService[User].getByUsername(user.username).map { u =>
+      u.isValid match {
+        case true => Right(u)
+        case false => Left(LdapInvalidAccountError)
       }
-      Left(Errors(errors))
-    }, { success =>
-      Right(success)
-    })
+    }.getOrElse {
+	    LDAPRequiresExistingAccount match {
+	      case true => Left(LdapAccountNotFoundError)
+	      case false => createAccount(user)
+	    }
+    }
+    
+  }
+  
 
+  def createAuthentication(u: User, remember_me: Option[Boolean]): Either[Errors, Authentication] = {
+    
+    Right(Authentication(u.username, ProviderId, None, DateTime.now, remember_me.getOrElse(false)))
   }
 
-	def createAuthentication(u: LdapUser, remember_me:Option[Boolean]): Either[Errors, Authentication] = {
-	  Right(Authentication(u.username, ProviderId, None, DateTime.now, remember_me.getOrElse(false)))
-	}
-  
-  
-  def authenticate(authToken: LdapAuthenticationToken): Either[Errors, Authentication] = {
+  def authenticate(authToken: UsernamePasswordAuthenticationToken): Either[Errors, Authentication] = {
     logger.debug(authToken.username + " attempts LDAP authentication")
-    
-    
+
     val result = connect.fold({ errors =>
       Left(errors)
     }, { connection =>
       logger.debug("Connected to LDAP")
-      val auth = for(
-          user <- findDN(connection, authToken.username).right;
-          result <- bindUser(connection, user.userDN, authToken.password).right;
-          authentication <- createAuthentication(user, authToken.remember_me).right
+      val auth = for (
+        user <- findDN(connection, authToken.username).right;
+        result <- bindUser(connection, user.userDN, authToken.password).right;
+        validUser <- validateAccount(user).right;
+        authentication <- createAuthentication(validUser, authToken.remember_me).right
       ) yield authentication
       connection.close
       auth
     })
-    
+
     result
   }
 

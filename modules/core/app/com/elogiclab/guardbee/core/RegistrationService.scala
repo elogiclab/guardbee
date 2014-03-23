@@ -25,25 +25,48 @@
  */
 package com.elogiclab.guardbee.core
 
-import play.api.Plugin
 import play.api.Application
-import play.api.mvc.Flash
-import play.api.templates.Html
-import play.api.data.Form
-import play.api.i18n.Lang
-
+import play.api.Plugin
+import org.joda.time.DateTime
 
 /**
  * @author Marco Sarti
  *
  */
-trait TemplateManager {
+
+trait RegistrationToken {
+  self =>
   
-  def loginPage(form: Form[UsernamePasswordAuthenticationToken], redirectUrl: String = "/")(implicit flash: Flash, lang: Lang): Html
-
+    
+  def email: String
+  def token: String
+  def expirationTime: DateTime
+  
+  
+  def isExpired = DateTime.now.isAfter(self.expirationTime)
+  
+  
 }
 
-class DefaultTemplateManagerPlugin(app:Application) extends Plugin with TemplateManager {
-  def loginPage(form: Form[UsernamePasswordAuthenticationToken], redirectUrl: String = "/")(implicit flash: Flash, lang: Lang): Html = com.elogiclab.guardbee.core.views.html.login(form, redirectUrl)(flash, lang)
+class RegistrationServiceConfig(app: Application) extends Configuration(app) {
+  
 }
 
+
+
+
+
+abstract class RegistrationService(app: Application) extends RegistrationServiceConfig(app) with Plugin {
+  
+  
+  def findTokenByEmail(email: String): Option[RegistrationToken]
+  def consumeToken(token: String): Option[RegistrationToken]
+  def saveToken(token: RegistrationToken): RegistrationToken
+  
+  
+  
+  
+  
+  
+
+}

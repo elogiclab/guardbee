@@ -44,6 +44,7 @@ trait User {
 
 }
 
+
 case class BasicUser(username: String, password: Option[String], fullName:String, email: String, enabled: Boolean, expirationDate: Option[DateTime]) extends User
 
 

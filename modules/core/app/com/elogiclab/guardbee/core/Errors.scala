@@ -55,6 +55,14 @@ case class Errors(messages: Seq[Msg]) {
   
 }
 
+trait ErrorResults {
+  
+  val AuthenticationError = Errors(Seq(Msg("guardbee.error.authentication_error")))
+  def InternalError(error_code: ErrorCodes.ErrorCode) = Errors(Seq(Msg("guardbee.error.internal", error_code)))
+  val AuthenticationFailedError = Errors(Seq(Msg("guardbee.error.authenticationFailed")))
+}
+
+
 object Errors {
   
   val AuthenticationError = Errors(Seq(Msg("guardbee.error.authentication_error")))
@@ -67,6 +75,10 @@ object Errors {
   
   
 }
+
+
+
+
 
 object ErrorCodes extends Enumeration {
   type ErrorCode = Value

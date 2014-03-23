@@ -1,0 +1,24 @@
+@* login_form Template File *@
+@(authenticator: String, dest: String)(implicit lang: Lang)
+@import com.elogiclab.guardbee.core.RoutesHelper
+  <form role="form" class="hidden login-form" id="@authenticator-login-form" name="@authenticator-login-form" action='@RoutesHelper.login(authenticator, Some(dest))' method="post">
+	<div class="form-group">
+		  <label class="control-label" for="@authenticator-username">@Messages("guardbee.label.username")</label> <input name="username" class="form-control" id="@authenticator-username" placeholder="Username" type="text">
+		</div>
+		
+		<div class="form-group">
+		  <label for="@authenticator-password" class="control-label">@Messages("guardbee.label.password")</label> <input name="password" class="form-control" id="@authenticator-password" placeholder="******" type="password">
+		</div>
+		
+		<div class="form-group">
+		  <button type="submit" class="btn btn-primary btn-block">@Messages("guardbee.label.login-with-"+authenticator)</button>
+		</div>
+		
+		<div class="row">
+		  <div class="col-xs-6 col-md-8">
+		    <div class="checkbox">
+		      <label><input checked="checked" type="checkbox" value="true" name="remember-me" id="@authenticator-rememeber-me"> @Messages("guardbee.label.remember-me")</label>
+		    </div>
+		  </div>
+	</div>
+  </form>

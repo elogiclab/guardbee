@@ -49,7 +49,7 @@ trait SecuredController extends Controller {
 
   def getAuthentication(request: RequestHeader) = GuardbeeService.getAuthentication(request).filter(a => !a.isExpired)
   def onUnauthorized(mimeType: String)(request: RequestHeader) = {
-    Results.Redirect(RoutesHelper.loginPage(request.path))
+    Results.Redirect(RoutesHelper.loginPage(Some(request.path)))
   }
   def onForbidden(mimeType: String)(request: RequestHeader) = Results.Redirect("/")
   def saveAuthentication(authentication: Authentication): Cookie = GuardbeeService.saveAuthentication(authentication)
