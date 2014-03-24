@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>GuardBee :: Getting Started</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="stylesheets/bootstrap.min.css" media="screen">
+    <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+    <script src="javascripts/bootstrap.min.js"></script>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/gist-embed/1.6/gist-embed.min.js"></script>
+
+
+  </head>
+  <body>
+    <div class="navbar navbar-default navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <a href="index.html" class="navbar-brand">GuardBee</a>
+          <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+        </div>
+        <div class="navbar-collapse collapse" id="navbar-main">
+          <ul class="nav navbar-nav">
+            <li class="active">
+              <a href="getting_started.html">Getting started</a>
+            </li>
+            <li>
+              <a href="#">Scala docs</a>
+            </li>
+
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="faqs.html">FAQs</a></li>
+          </ul>
+
+        </div>
+      </div>
+    </div>
+
+
+    <div class="container">
+
+      <div class="page-header" id="banner">
+        <div class="row">
+          <div class="col-lg-12">
+            <h2>Getting started</h2>
+            <h3>Installation</h3>
+            <p>Guardbee is distributed from Maven central repository. To install in your project edit your build.sbt or Build.scala adding the artifact:</p>
+            <script src="https://gist.github.com/msarti/9744299.js?file=build.sbt"></script>
+            <h3>Implementing the UserService</h3>
+            <p>First of all you need to implement the UserService for local account management. When you use GuardBee your account model must implement the com.elogiclab.guardbee.core.User trait: the 	
+            UserService will be a Play plugin that implements the com.elogiclab.guardbee.core.UserService abstract class having your model class as generic argument. The generic argument is for your facility, 
+            GuardBee framework only uses the User trait as argument.</p>
+            <h3>Mandatory plugins</h3>
+	    <p>The framework needs three mandatory plugins to be activated:</p>
+	    <ul>
+	    
+		<li>the main GuardbeeService plugin. It must be the first started plugin.</li>
+		<li>the UserService implementation</li>
+		<li>the Authenticator(s)</li>
+	   </ul>
+	   <p>This is a simple example:</p>
+            <script src="https://gist.github.com/msarti/9744299.js?file=play.plugins"></script>
+            <h3>Authenticators</h3>
+
+		<p>Authenticators are responsable of the authentication process. Each authentication method needs an Authenticator to be implemented: 
+		LocalAccountAuthenticator is actually the only supported method (for now) and it is based on username/password mechanism by the UserService.obtainPassword method.</p>
+		<div class="well">the User model does not have a password field. Depending on your security you can store the password directly in the User model or in a separate table/place/database. </div>
+		<p>GuardbeeService.PasswordProvider service is responsable of hashing/verifying password for LocalAccountAuthenticator. 
+		The default implementation uses Bcrypt hashing method, you are free to use any other method simply implementing the PasswordProvider abstract class and activating it as a normal plugin. </p>
+		
+		<h3>Stateful session</h3>
+
+		<p>SessionManager is responsable of maintaining the stateful session. The default implementation writes the authentication informations (no passwords!) 
+		in a signed cookie; you can implement any other method, such as a server-side session management, by implementing the SessionManager abstract class 
+		and activating it as a normal plugin.</p>
+
+		<h3>Protecting your URLs</h3>
+
+		<p>To protect URLs add the SecuredController trait to your controller object and use the Authorized method passing your Action implementation. 
+		The first argument of Authorized is the authorization function: the authorization function is a simple function that receive the Authentication 
+		object and returns true if the user is authorized and false if he doesn't. There are several ready-to-use function in the authz package object, 
+		for more info please refer to the API documentation.</p>
+
+		<p>The Action function receive both request and Authentication object as function parameters. 
+		A controller function that does not need to be authorized can call the SecuredController.getAuthentication method to retrieve the current Authentication object. 
+		You can also call the GuardbeeService.getAutentication to retrieve the Authentication object from any part of code (but in any case you must have the request available).  </p>
+
+
+          </div>
+        </div>
+      </div>
+
+
+
+    </div>
+
+
+  </body>
+</html>
