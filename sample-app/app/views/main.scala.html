@@ -5,24 +5,21 @@
 <head>
     <title>@title</title>
     <link rel='shortcut icon' type='image/png' href='@routes.Assets.at("images/favicon.png")'>
-    <link rel='stylesheet' href='@routes.WebJarAssets.at(WebJarAssets.locate("bootstrap.min.css"))'>
     <script type='text/javascript' src='@routes.WebJarAssets.at(WebJarAssets.locate("jquery.min.js"))'></script>
-    <style>
-    body {
-        margin-top: 50px;
-    }
-    </style>
+    <!-- Bootstrap core CSS -->
+    <link href='@controllers.guardbee.views.routes.Assets.at("css/bootstrap.css")' rel="stylesheet">
+
+    <!-- Add custom CSS here -->
+    <link href='@controllers.guardbee.views.routes.Assets.at("css/sb-admin.css")' rel="stylesheet">
+    <link rel="stylesheet" href='@controllers.guardbee.views.routes.Assets.at("font-awesome/css/font-awesome.min.css")'>
 </head>
 <body>
-    <div class="navbar navbar-fixed-top">
-        <div class="navbar-inner">
-            <div class="container-fluid">
-                <a id="titleLink" class="brand" href="/">@title</a>
-            </div>
-        </div>
-    </div>
-    <div class="container">
+    <div id="wrapper">
         @content
     </div>
+        <!-- JavaScript -->
+    <script src="js/jquery-1.10.2.js"></script>
+    <script type='text/javascript' src='@routes.WebJarAssets.at(WebJarAssets.locate("bootstrap.js"))'></script>
+    
 </body>
 </html>

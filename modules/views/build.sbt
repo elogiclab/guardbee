@@ -1,7 +1,7 @@
 play.Project.playScalaSettings
 
 
-name := "guardbee-core"
+name := "guardbee-views"
 
 organization := Common.buildOrganization
 
@@ -16,10 +16,14 @@ resolvers += Resolver.url("sbt-plugin-releases", new URL("http://repo.scala-sbt.
 
 resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/repo/"
 
+resolvers += Resolver.sonatypeRepo("snapshots")
+
 libraryDependencies ++= Seq(
-  "commons-codec" % "commons-codec" % "1.8",
-  "org.mindrot" % "jbcrypt" % "0.3m",
-  "com.typesafe" %% "play-plugins-mailer" % "2.2.0"
+  Common.buildOrganization %% "guardbee-core" % Common.buildVersion,
+  "org.webjars" %% "webjars-play" % "2.2.0", 
+  "org.webjars" % "bootstrap" % "3.0.3",
+  "org.webjars" % "jquery" % "1.11.0",
+  "org.webjars" % "font-awesome" % "4.0.3"
 )
 
 templatesImport += "com.elogiclab.guardbee.core.GuardbeeService._"

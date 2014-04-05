@@ -13,6 +13,8 @@ object ApplicationBuild extends Build {
   
   lazy val core = Project("guardbee-core", file("modules/core"))
 
+  lazy val views = Project("guardbee-views", file("modules/views"))
+
   lazy val ldap = Project("guardbee-ldap", file("modules/ldap"))
 
   lazy val google = Project("guardbee-google", file("modules/google"))
@@ -20,7 +22,7 @@ object ApplicationBuild extends Build {
 
   val main = play.Project(
     appName, appVersion, appDependencies
-  ).dependsOn(core, ldap, google).aggregate(core, ldap, google)
+  ).dependsOn(core, views, ldap, google).aggregate(core, views, ldap, google)
 
 
 

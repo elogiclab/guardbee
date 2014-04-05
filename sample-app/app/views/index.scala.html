@@ -1,9 +1,73 @@
-@(message: String)
-
+@(message: String)(implicit request: Request[AnyContent])
+@import com.elogiclab.guardbee.core.GuardbeeService
+@import com.elogiclab.guardbee.core.RoutesHelper
 @main("Welcome to Play Framework") {
 
-    <div class="well">
-        <h1>@message</h1>
-    </div>
+      <!-- Sidebar -->
+      <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="index.html">Guardbee sample App</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse navbar-ex1-collapse">
+          <!--<ul class="nav navbar-nav side-nav">
+            <li><a href="index.html"><i class="fa fa-dashboard"></i> Dashboard</a></li>
+            <li><a href="charts.html"><i class="fa fa-bar-chart-o"></i> Charts</a></li>
+            <li><a href="tables.html"><i class="fa fa-table"></i> Tables</a></li>
+            <li><a href="forms.html"><i class="fa fa-edit"></i> Forms</a></li>
+            <li><a href="typography.html"><i class="fa fa-font"></i> Typography</a></li>
+            <li><a href="bootstrap-elements.html"><i class="fa fa-desktop"></i> Bootstrap Elements</a></li>
+            <li><a href="bootstrap-grid.html"><i class="fa fa-wrench"></i> Bootstrap Grid</a></li>
+            <li class="active"><a href="blank-page.html"><i class="fa fa-file"></i> Blank Page</a></li>
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-caret-square-o-down"></i> Dropdown <b class="caret"></b></a>
+              <ul class="dropdown-menu">
+                <li><a href="#">Dropdown Item</a></li>
+                <li><a href="#">Another Item</a></li>
+                <li><a href="#">Third Item</a></li>
+                <li><a href="#">Last Item</a></li>
+              </ul>
+            </li>
+          </ul> -->
+
+          <ul class="nav navbar-nav navbar-right navbar-user">
+            @GuardbeeService.getAuthentication(request).map { auth =>
+            <li class="dropdown user-dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-user"></i> @auth.user.map{ u:com.elogiclab.guardbee.core.User => @u.fullName}.getOrElse(auth.username) <b class="caret"></b></a>
+              <ul class="dropdown-menu">
+                <li><a href="@routes.Application.secured"><i class="fa fa-user"></i> Profile</a></li>
+                <li class="divider"></li>
+                <li><a href="@RoutesHelper.logout"><i class="fa fa-power-off"></i> Log Out</a></li>
+              </ul>
+            </li>
+            }.getOrElse {
+            	<a href="@RoutesHelper.loginPage(Some("/"))"><i class="fa fa-user"></i> Login <b class="caret"></b></a>
+            }
+          </ul>
+        </div><!-- /.navbar-collapse -->
+      </nav>
+
+      <div id="page-wrapper">
+
+        <div class="row">
+          <div class="col-lg-12">
+            <h1>Blank Page <small>A Blank Slate</small></h1>
+            <ol class="breadcrumb">
+              <li><a href="/"><i class="icon-dashboard"></i> Dashboard</a></li>
+              <li class="active"><i class="icon-file-alt"></i> Blank Page</li>
+            </ol>
+          </div>
+        </div><!-- /.row -->
+
+      </div><!-- /#page-wrapper -->
+
 
 }

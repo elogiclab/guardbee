@@ -118,6 +118,6 @@ object LoginLogoutController extends Controller {
   }
 
   def logout() = Action { request =>
-    NotImplemented
+    GuardbeeService.removeAuthentication(Redirect("/"))
   }
 }

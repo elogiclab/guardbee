@@ -1,0 +1,1 @@
+GET     /assets/*file               controllers.guardbee.views.Assets.at(path="/public/guardbee", file)

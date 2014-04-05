@@ -83,9 +83,7 @@ class GuardbeeServicePlugin(app: Application) extends Plugin with GuardbeeServic
   def UserService[T <: User] = app.plugin[UserService[T]].getOrElse(sys.error("Could not load UserService plugin"))
   
   lazy val TemplateManager = app.plugin[TemplateManager].getOrElse {
-    val plugin = new DefaultTemplateManagerPlugin(app)
-    logger.info("Using the default TemplateManager");
-    plugin
+    sys.error("No TemplateManager is defined. Please activate a TemplateManager plugin (i.e. DefaultTemplateManagerPlugin)")
   }
   
   lazy val PasswordProvider = app.plugin[PasswordProvider].getOrElse {

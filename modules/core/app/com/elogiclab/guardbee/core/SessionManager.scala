@@ -121,10 +121,25 @@ class DefaultSessionManagerPlugin(app: Application) extends Plugin with SessionM
   def getAuthentication(request: RequestHeader): Option[Authentication] = {
     import GuardbeeService.Configuration
     request.cookies.get(Configuration.CookieName).map{ cookie =>
-      verifyAndDeserialize(cookie.value)
-    }.getOrElse(None)
+      val authOpt = verifyAndDeserialize(cookie.value)
+      logger.debug(authOpt.map {auth => "Authentication found - lastAccess: "+auth.lastAccess+", isExpired: "+auth.isExpired}.getOrElse("Authentication invalid"))
+      authOpt
+    }.getOrElse {
+      logger.debug("Authentication not present")
+      None
+    }
   }
 
-  def removeAuthentication(result: => Result): Result = result
+  def removeAuthentication(result: => Result): Result = {
+    import GuardbeeService.Configuration
+    val cookie = Cookie(
+      name = Configuration.CookieName,
+      path = Configuration.CookiePath,
+      maxAge = Some(-1),
+      value = "",
+      httpOnly = true,
+      secure = Configuration.CookieSecure)  
+      result.withCookies(cookie)
+  }
 
 }

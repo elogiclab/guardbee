@@ -23,22 +23,10 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  *
  */
-package com.elogiclab.guardbee.core
-
-import play.api.Plugin
-import play.api.Application
-import play.api.mvc.Flash
-import play.api.templates.Html
-import play.api.data.Form
-import play.api.i18n.Lang
-
+package controllers.guardbee.views
 
 /**
  * @author Marco Sarti
  *
  */
-trait TemplateManager {
-  
-  def loginPage(form: Form[UsernamePasswordAuthenticationToken], redirectUrl: String = "/")(implicit flash: Flash, lang: Lang): Html
-
-}
+object Assets extends controllers.AssetsBuilder

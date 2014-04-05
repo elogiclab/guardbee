@@ -7,11 +7,18 @@ GET		/secured					controllers.Application.secured()
 
 
 # Map static resources from the /public folder to the /assets URL path
+
+->  /guardbee guardbee.views.Routes
+
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
+
+
+
 GET     /webjars/*file              controllers.WebJarAssets.at(file)
 
 GET 	/login						com.elogiclab.guardbee.core.LoginLogoutController.loginPage(dest: Option[String])
 POST 	/login/*providerId						com.elogiclab.guardbee.core.LoginLogoutController.login(providerId, dest: Option[String])
+GET 	/logout						com.elogiclab.guardbee.core.LoginLogoutController.logout()
 
 POST 	/loginwith/*providerId						com.elogiclab.guardbee.core.LoginLogoutController.loginWith(providerId, dest)
 
