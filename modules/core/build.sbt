@@ -64,6 +64,9 @@ pomExtra := (
   </developers>
 )
 
+apiURL := Some(url("http://www.elogiclab.com/guardbee/api/"))
+
+scalacOptions in (Compile,doc) := Seq("-groups", "-implicits")
 
 
 

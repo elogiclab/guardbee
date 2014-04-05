@@ -1,7 +1,6 @@
 400:com.elogiclab.guardbee.core.GuardbeeServicePlugin
 401:services.UserServicePlugin
 420:com.elogiclab.guardbee.core.authprovider.LocalAccountAuthenticatorPlugin
-430:com.elogiclab.guardbee.providers.google.GoogleAuthenticatorPlugin
 431:com.elogiclab.guardbee.providers.ldap.LdapAuthenticatorPlugin
 
 

@@ -18,6 +18,45 @@ libraryDependencies ++= Seq(
   Common.buildOrganization %% "guardbee-core" % Common.buildVersion
 )
 
+publishTo <<= version { v: String =>
+  val nexus = "https://oss.sonatype.org/"
+  if (v.trim.endsWith("SNAPSHOT")) 
+    Some("snapshots" at nexus + "content/repositories/snapshots")
+  else                             
+    Some("releases" at nexus + "service/local/staging/deploy/maven2")
+}
+
+publishMavenStyle := true
+
+publishArtifact in Test := false
+
+pomIncludeRepository := { x => false }
+
+pomExtra := (
+  <url>http://www.elogiclab.com</url>
+  <licenses>
+    <license>
+      <name>MIT</name>
+      <url>http://opensource.org/licenses/MIT</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <scm>
+    <url>git@github.com:elogiclab/guardbee.git</url>
+    <connection>scm:git:git@github.com:elogiclab/guardbee.git</connection>
+  </scm>
+  <developers>
+    <developer>
+      <id>msarti</id>
+      <name>Marco Sarti</name>
+      <url>http://www.elogiclab.com</url>
+    </developer>
+  </developers>
+)
+
+apiURL := Some(url("http://www.elogiclab.com/guardbee/api/"))
+
+scalacOptions in (Compile,doc) := Seq("-groups", "-implicits")
 
 
 
