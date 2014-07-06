@@ -1,6 +1,6 @@
 play.Project.playScalaSettings
 
-name := "guardbee-google"
+name := "guardbee-oauth2"
 
 organization := Common.buildOrganization
 
@@ -16,7 +16,6 @@ resolvers += Resolver.url("sbt-plugin-releases", new URL("http://repo.scala-sbt.
 resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/repo/"
 
 resolvers += "Snapshot repository" at "https://oss.sonatype.org/content/repositories/snapshots"
-
 
 libraryDependencies ++= Seq(
   Common.buildOrganization %% "guardbee-core" % Common.buildVersion
@@ -61,10 +60,6 @@ pomExtra := (
 apiURL := Some(url("http://www.elogiclab.com/guardbee/api/"))
 
 scalacOptions in (Compile,doc) := Seq("-groups", "-implicits")
-
-
-
-
 
 
 

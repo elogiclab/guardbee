@@ -19,10 +19,12 @@ object ApplicationBuild extends Build {
 
   lazy val google = Project("guardbee-google", file("modules/google"))
 
+  lazy val oauth2 = Project("guardbee-oauth2", file("modules/oauth2"))
+
 
   val main = play.Project(
     appName, appVersion, appDependencies
-  ).dependsOn(core, views, ldap, google).aggregate(core, views, ldap, google)
+  ).dependsOn(core, views, ldap, google, oauth2).aggregate(core, views, ldap, google, oauth2)
 
 
 

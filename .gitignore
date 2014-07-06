@@ -21,5 +21,8 @@ project/plugins/project/
 .project
 .settings/
 
+#Idea specific
+.idea/
+
 
 

@@ -8,10 +8,12 @@ scalaVersion := Common.buildScalaVersion
 
 scalacOptions ++= Seq("-Xlint","-deprecation", "-unchecked","-encoding", "utf8")
 
-
 resolvers += Resolver.url("sbt-plugin-releases", new URL("http://repo.scala-sbt.org/scalasbt/sbt-plugin-releases/"))(Resolver.ivyStylePatterns)
 
 resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/repo/"
+
+resolvers += "Snapshot repository" at "https://oss.sonatype.org/content/repositories/snapshots"
+
 
 libraryDependencies ++= Seq(
   "com.unboundid" % "unboundid-ldapsdk" % "2.3.6",
