@@ -29,7 +29,7 @@ package com.elogiclab.guardbee.providers.ldap
  * @author Marco Sarti
  *
  */
-import org.specs2.mutable.Specification
+import org.specs2.mutable.{Tags, Specification}
 import play.api.test.WithApplication
 import com.unboundid.ldap.sdk.LDAPConnection
 import play.api.Logger
@@ -41,11 +41,13 @@ import com.elogiclab.guardbee.core.UsernamePasswordAuthenticationToken
  * @author Marco Sarti
  *
  */
-object LdapAuthenticatorSpec extends Specification {
+object LdapAuthenticatorSpec extends Specification with Tags {
   val logger = Logger("guardbee")
+
 
   "LdapAuthenticator" should {
 
+    tag("ldap")
     "findDN must find DN" in new WithApplication(app = new FakeApplication(
       additionalPlugins = Seq("com.elogiclab.guardbee.core.GuardbeeServicePlugin"),
       additionalConfiguration = Map("logger.guardbee-ldap" -> "DEBUG"))) {
@@ -63,6 +65,8 @@ object LdapAuthenticatorSpec extends Specification {
       })
 
     }
+
+    tag("ldap")
     "bindUser must authenticate" in new WithApplication(app = new FakeApplication(additionalPlugins = Seq("com.elogiclab.guardbee.core.GuardbeeServicePlugin"))) {
       val clazz = new LdapAuthenticatorPlugin(app)
       clazz.connect.fold({ error =>
@@ -82,6 +86,7 @@ object LdapAuthenticatorSpec extends Specification {
   }
 
 
+  tag("ldap")
   "Should authenticate" in new WithApplication(app = new FakeApplication(additionalPlugins = Seq("com.elogiclab.guardbee.core.GuardbeeServicePlugin"))) {
     val plugin = new LdapAuthenticatorPlugin(app) {
       override def validateAccount(user: LdapUser) = Right(user)
@@ -91,6 +96,9 @@ object LdapAuthenticatorSpec extends Specification {
     result must beRight
     
   }
+
+
+  tag("ldap")
   "Should NOT authenticate if account is invalid" in new WithApplication(app = new FakeApplication(additionalPlugins = Seq("com.elogiclab.guardbee.core.GuardbeeServicePlugin"))) {
     val plugin = new LdapAuthenticatorPlugin(app) {
       override def validateAccount(user: LdapUser) = Left(LdapInvalidAccountError)
@@ -101,8 +109,9 @@ object LdapAuthenticatorSpec extends Specification {
     
   }
 
-  
-  
+
+
+  tag("ldap")
   "Should NOT authenticate with bad credentials" in new WithApplication(app = new FakeApplication(additionalPlugins = Seq("com.elogiclab.guardbee.core.GuardbeeServicePlugin"))) {
     val plugin = new LdapAuthenticatorPlugin(app)
     val result = plugin.authenticate(UsernamePasswordAuthenticationToken("msarti", "bad", None))
@@ -110,6 +119,9 @@ object LdapAuthenticatorSpec extends Specification {
     result must beLeft
     
   }
+
+
+  tag("ldap")
   "Should NOT authenticate with blank password" in new WithApplication {
     val plugin = new LdapAuthenticatorPlugin(app)
     val result = plugin.authenticate(UsernamePasswordAuthenticationToken("msarti", "", None))
@@ -117,6 +129,8 @@ object LdapAuthenticatorSpec extends Specification {
     result must beLeft
     
   }
+
+  tag("ldap")
   "Should NOT authenticate if user does not exist" in new WithApplication {
     val plugin = new LdapAuthenticatorPlugin(app)
     val result = plugin.authenticate(UsernamePasswordAuthenticationToken("notexists", "dummy", None))
@@ -124,4 +138,5 @@ object LdapAuthenticatorSpec extends Specification {
     result must beLeft
     
   }
+
 }
